@@ -1,3 +1,11 @@
 .PHONY: all
 all:
-	gcc motor.c -lwiringPi -o motor
+	g++ motor.c -lwiringPi -o motor
+
+.PHONY: clean
+clean:
+	rm -f motor
+
+.PHONY: run
+run:
+	sudo ./motor 19 27 7777
