@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -96,6 +97,12 @@ int main(int argc, char* argv[]){
     struct sockaddr_in cliaddr;
     memset(&cliaddr,0,sizeof(cliaddr));
 
+    int last_speed = -1;
+    time_t startTime;
+    time_t currentTime;
+
+    time(&startTime);
+
     if(setup_socket(port,sock) < 0){
         return -1;
     }
@@ -103,6 +110,7 @@ int main(int argc, char* argv[]){
     wiringPiSetupGpio(); //use BCM
     setup_motor(pwm_pin,direction_pin);
 
+    //test_functionality(pwm_pin,direction_pin);
     while(1){
         socklen_t len = 0;
         int n = 0;
@@ -121,6 +129,7 @@ int main(int argc, char* argv[]){
             int speed = (int)data[0];
             int direction = (int)data[1];
             bool validPacket = true;
+            bool allowChange = true;
 
             if(speed < 0 || speed > 100){
                 validPacket = false;
@@ -130,10 +139,19 @@ int main(int argc, char* argv[]){
                 validPacket = false;
             }
 
-            if(validPacket == true){
-                digitalWrite(direction_pin,direction);
-                pwmWrite(pwm_pin,speed);
-                printf("Recv: speed %i, direction %i\n",speed,direction);
+            if(speed == last_speed){
+                allowChange = false;
+            }
+            last_speed = speed;
+
+            if(validPacket == true && allowChange == true){
+                time(&currentTime);
+//                if(difftime(currentTime,startTime)>1){
+                    digitalWrite(direction_pin,direction);
+                    pwmWrite(pwm_pin,speed);
+                    printf("Recv: speed %x, direction %i\n",(int)speed,direction);
+                    startTime = currentTime;
+//                }
             }
         }
     }

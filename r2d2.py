@@ -3,6 +3,8 @@
 import os,sys
 import RPi.GPIO as GPIO
 import faulthandler
+import socket
+import struct
 
 from Controller import *
 from Motor import *
@@ -31,15 +33,23 @@ def setup_leds():
 def setup_audio():
     pass #TODO
 
+def setup_udp():
+    return socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+
 ###########################################
 
 if __name__=='__main__':
+    UDP_IP = '127.0.0.1'
+    UDP_PORT = 7777
+
     faulthandler.enable()
     setup_raspberry_pi()
-    (left_wheel,right_wheel,dome) = setup_motors()
+    #(left_wheel,right_wheel,dome) = setup_motors()
     controller = setup_controller()
     setup_leds()
     setup_audio()
+    sock = setup_udp()
+    firstTime = True
 
     counter = 0    
     
@@ -48,16 +58,21 @@ if __name__=='__main__':
 
         #if this is a joystick, read the 'y' component
         if(keyType == 'ly' or keyType == 'ry'):
-            counter += 1
-            if(counter == 100):
-                counter = 0
-            else:
-                continue
+            #counter += 1
+            #if(counter == 100):
+            #    counter = 0
+            #else:
+            #    continue
             print('%s: %.3f'%(keyType,keyVal))
             #if it's 0, stop moving
             if(keyVal == 0.0):
-                left_wheel.engage_motor(True)
-                left_wheel.engage_motor(False)
+                data = (0,1)
+                packed_data = bytes()
+                packed_data = packed_data.join((struct.pack('B',val) for val in data))
+                sock.sendto(packed_data,(UDP_IP,UDP_PORT))
+                
+            #    left_wheel.engage_motor(True)
+            #    left_wheel.engage_motor(False)
             #we want to move
             else:
                 #direction (negative is forward)
@@ -70,8 +85,16 @@ if __name__=='__main__':
                 speed = int(abs(keyVal)*100)
                 print('Speed = %i, direction = %i'%(speed,direction))
 
+                data = (speed,direction)                
+                packed_data = bytes()
+                packed_data = packed_data.join((struct.pack('B',val) for val in data))
+
+                #if(firstTime):
+                #    firstTime = False
+                sock.sendto(packed_data,(UDP_IP,UDP_PORT))                
+
                 #set speed
-                left_wheel.set_speed(speed,direction)
+                #left_wheel.set_speed(speed,direction)
         else:
             print('%s: %i'%(keyType,keyVal))
             if(keyType == 'x' and keyVal == 1):
