@@ -33,4 +33,4 @@ def play_noise(filename):
     p.terminate()
 
 if __name__=='__main__':
-    play_noise('./sounds/RAZZ10.wav')    
+    play_noise('./sounds/WHIST2.wav')    

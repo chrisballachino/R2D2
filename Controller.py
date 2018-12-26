@@ -171,13 +171,13 @@ class ps4_controller:
                             self.right_stick_change = True
 
                         if(self.left_stick_change):
-                            return ('ly',self.last_y_val)
-                            #print('(%.3f, %.3f)'%(self.last_x_val,self.last_y_val))
+                            #print('(%.3f, %.3f)'%(self.last_x_val,self.last_y_val))                            
                             self.left_stick_change = False
+                            return (('ly',self.last_y_val),('lx',self.last_x_val))
                         if(self.right_stick_change):
-                            return ('ry',self.last_rz_val)
                             #print('(%.3f, %.3f)'%(self.last_z_val,self.last_rz_val))
                             self.right_stick_change = False
+                            return (('ry',self.last_rz_val),('rx',self.last_z_val))
 
 if __name__=='__main__':
     c = ps4_controller()

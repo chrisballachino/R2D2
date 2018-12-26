@@ -31,7 +31,7 @@ def setup_leds():
     pass #TODO
 
 def setup_audio():
-    pass #TODO
+    pass #shouldn't have to do anything
 
 def setup_udp():
     return socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -40,7 +40,8 @@ def setup_udp():
 
 if __name__=='__main__':
     UDP_IP = '127.0.0.1'
-    UDP_PORT = 7777
+    UDP_PORT_LEFT = 7777
+    UDP_PORT_RIGHT = 7778
 
     faulthandler.enable()
     setup_raspberry_pi()
@@ -54,48 +55,50 @@ if __name__=='__main__':
     counter = 0    
     
     while(True):
-        (keyType,keyVal) = controller.read()
+        output = controller.read()
 
-        #if this is a joystick, read the 'y' component
-        if(keyType == 'ly' or keyType == 'ry'):
-            #counter += 1
-            #if(counter == 100):
-            #    counter = 0
-            #else:
-            #    continue
-            print('%s: %.3f'%(keyType,keyVal))
-            #if it's 0, stop moving
-            if(keyVal == 0.0):
-                data = (0,1)
-                packed_data = bytes()
-                packed_data = packed_data.join((struct.pack('B',val) for val in data))
-                sock.sendto(packed_data,(UDP_IP,UDP_PORT))
-                
-            #    left_wheel.engage_motor(True)
-            #    left_wheel.engage_motor(False)
-            #we want to move
-            else:
-                #direction (negative is forward)
-                if(keyVal < 0.0):
-                    direction = 1
+	#joystick outputs a tuple of tuples
+	if(len(output)==2 and type(output[0])==tuple):
+            (keyTypeY,keyValY) = output[0]
+            (keyTypeX,keyValX) = output[1]
+
+            #if this is a joystick, read the 'y' component
+            if(keyTypeY == 'ly' or keyTypeY == 'ry'):
+                print('%s: %.3f'%(keyTypeY,keyValY))
+                #if it's 0, stop moving
+                if(keyValY == 0.0):
+                    data = (0,1)
+                    packed_data = bytes()
+                    packed_data = packed_data.join((struct.pack('B',val) for val in data))
+                    if(keyTypeY == 'ly'):
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))
+                    else:
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))
+                #we want to move
                 else:
-                    direction = 0
+                    #direction (negative is forward)
+                    if(keyValY < 0.0):
+                        direction = 1
+                    else:
+                        direction = 0
 
-                #joystick returns -1.0 to 1, so multiply to get 0 to 100
-                speed = int(abs(keyVal)*100)
-                print('Speed = %i, direction = %i'%(speed,direction))
+                    #joystick returns -1.0 to 1, so multiply to get 0 to 100
+                    speed = int(abs(keyValY)*100)
+                    print('Speed = %i, direction = %i'%(speed,direction))
 
-                data = (speed,direction)                
-                packed_data = bytes()
-                packed_data = packed_data.join((struct.pack('B',val) for val in data))
+                    data = (speed,direction)                
+                    packed_data = bytes()
+                    packed_data = packed_data.join((struct.pack('B',val) for val in data))
 
-                #if(firstTime):
-                #    firstTime = False
-                sock.sendto(packed_data,(UDP_IP,UDP_PORT))                
-
-                #set speed
-                #left_wheel.set_speed(speed,direction)
+                    if(keyTypeY == 'ly'):
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))                
+                    else:
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))
+            if(keyTypeX == 'lx' or keyTypeX == 'rx'):
+                print('%s %.3f'%(keyTypeX,keyValX))
+            
         else:
+            (keyType,keyVal) = output
             print('%s: %i'%(keyType,keyVal))
             if(keyType == 'x' and keyVal == 1):
                 play_noise('./sounds/RAZZ10.wav')
