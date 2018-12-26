@@ -1,7 +1,7 @@
 .PHONY: all
 all:
 	g++ motor.c -lwiringPi -o motor
-	g++ dome.c -lwiringPi -lpthread -o motor
+	g++ dome.c -lwiringPi -lpthread -o dome
 
 .PHONY: clean
 clean:

@@ -14,6 +14,7 @@ from Audio import *
 def setup_raspberry_pi():
     GPIO.setmode(GPIO.BCM)
 
+#Note: not necessary anymore, using UDP
 def setup_motors():
     left_wheel = Motor(0)
     right_wheel = None#Motor(1)
@@ -42,6 +43,7 @@ if __name__=='__main__':
     UDP_IP = '127.0.0.1'
     UDP_PORT_LEFT = 7777
     UDP_PORT_RIGHT = 7778
+    UDP_PORT_DOME = 7779
 
     faulthandler.enable()
     setup_raspberry_pi()
@@ -57,6 +59,7 @@ if __name__=='__main__':
     while(True):
         output = controller.read()
 
+        #TODO this could be much cleaner as a loop, clean up if there's time and will
 	#joystick outputs a tuple of tuples
 	if(len(output)==2 and type(output[0])==tuple):
             (keyTypeY,keyValY) = output[0]
@@ -64,7 +67,7 @@ if __name__=='__main__':
 
             #if this is a joystick, read the 'y' component
             if(keyTypeY == 'ly' or keyTypeY == 'ry'):
-                print('%s: %.3f'%(keyTypeY,keyValY))
+                #print('%s: %.3f'%(keyTypeY,keyValY))
                 #if it's 0, stop moving
                 if(keyValY == 0.0):
                     data = (0,1)
@@ -84,7 +87,7 @@ if __name__=='__main__':
 
                     #joystick returns -1.0 to 1, so multiply to get 0 to 100
                     speed = int(abs(keyValY)*100)
-                    print('Speed = %i, direction = %i'%(speed,direction))
+                    print('Y Speed = %i, direction = %i'%(speed,direction))
 
                     data = (speed,direction)                
                     packed_data = bytes()
@@ -94,8 +97,27 @@ if __name__=='__main__':
                         sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))                
                     else:
                         sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))
-            if(keyTypeX == 'lx' or keyTypeX == 'rx'):
-                print('%s %.3f'%(keyTypeX,keyValX))
+            if(keyTypeX == 'lx'): #Only use one joystick to avoid sending two directions back-to-back # or keyTypeX == 'rx'):
+                #print('%s %.3f'%(keyTypeX,keyValX))
+                if(abs(keyValX) < 5.0):
+                    data = (0,1)
+                    packed_data = bytes()
+                    packed_data = packed_data.join((struct.pack('B',val) for val in data))
+                    sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
+                else:
+                    #direction (negative is left)
+                    if(keyValX < 0.0):
+                        direction = 1
+                    else:
+                        direction = 0
+             
+                    speed = int(abs(keyValX)*100)
+                    print('X Speed = %i, direction = %i'%(speed,direction))
+
+                    data = (speed,direction)
+                    packed_data = bytes()
+                    packed_data = packed_data.join((struct.pack('B',val) for val in data))
+                    sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
             
         else:
             (keyType,keyVal) = output
@@ -108,7 +130,3 @@ if __name__=='__main__':
                 play_noise('./sounds/GROAN.wav')
             elif(keyType == 'circle' and keyVal == 1):
                 play_noise('./sounds/WOWIE.wav')
-            elif(keyType == 'l1' and keyVal == 1):
-                left_wheel.set_speed(25,1)
-            elif(keyType == 'r1' and keyVal == 1):
-                left_wheel.set_speed(95,1)
