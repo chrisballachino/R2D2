@@ -61,7 +61,7 @@ if __name__=='__main__':
 
         #TODO this could be much cleaner as a loop, clean up if there's time and will
 	#joystick outputs a tuple of tuples
-	if(len(output)==2 and type(output[0])==tuple):
+	if(output != None and len(output)==2 and type(output[0])==tuple):
             (keyTypeY,keyValY) = output[0]
             (keyTypeX,keyValX) = output[1]
 
@@ -80,10 +80,17 @@ if __name__=='__main__':
                 #we want to move
                 else:
                     #direction (negative is forward)
-                    if(keyValY < 0.0):
-                        direction = 1
+                    if(keyTypeY == 'ly'):
+                        if(keyValY < 0.0):
+                            direction = 1
+                        else:
+                            direction = 0
+                    #for some reason the two motors are backwards
                     else:
-                        direction = 0
+                        if(keyValY < 0.0):
+                            direction = 0
+                        else:
+                            direction = 1
 
                     #joystick returns -1.0 to 1, so multiply to get 0 to 100
                     speed = int(abs(keyValY)*100)
@@ -120,13 +127,17 @@ if __name__=='__main__':
                     sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
             
         else:
-            (keyType,keyVal) = output
-            print('%s: %i'%(keyType,keyVal))
-            if(keyType == 'x' and keyVal == 1):
-                play_noise('./sounds/RAZZ10.wav')
-            elif(keyType == 'square' and keyVal == 1):
-                play_noise('./sounds/CHORTLE.wav')
-            elif(keyType == 'triangle' and keyVal == 1):
-                play_noise('./sounds/GROAN.wav')
-            elif(keyType == 'circle' and keyVal == 1):
-                play_noise('./sounds/WOWIE.wav')
+            try:
+                (keyType,keyVal) = output
+                print('%s: %i'%(keyType,keyVal))
+                if(keyType == 'x' and keyVal == 1):
+                    play_noise('./sounds/RAZZ10.wav')
+                elif(keyType == 'square' and keyVal == 1):
+                    play_noise('./sounds/CHORTLE.wav')
+                elif(keyType == 'triangle' and keyVal == 1):
+                    play_noise('./sounds/GROAN.wav')
+                elif(keyType == 'circle' and keyVal == 1):
+                    play_noise('./sounds/WOWIE.wav')
+            except:
+                print('Key not valid:')
+                print(output)

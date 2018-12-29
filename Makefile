@@ -10,5 +10,5 @@ clean:
 .PHONY: run
 run:
 	sudo ./motor 19 27 7777 &
-	sudo ./motor 83 84 7778 &
-	sudo ./dome 66 67 7779 &
+	sudo ./dome 16 22 7778 &
+	sudo ./dome 2 3 7779 &
