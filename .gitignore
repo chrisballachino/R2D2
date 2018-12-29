@@ -1,3 +1,5 @@
 *.pyc
 motor
+motor2
 dome
+led_grid
