@@ -2,6 +2,7 @@
 all:
 	g++ motor.c -lwiringPi -o motor
 	g++ dome.c -lwiringPi -lpthread -o dome
+	g++ led_grid.c -lwiringPi -o led_grid
 
 .PHONY: clean
 clean:
