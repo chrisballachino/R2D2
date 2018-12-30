@@ -7,9 +7,10 @@
 #include <errno.h>
 #include <time.h>
 
-#define NUM_LEDS 19
+#define NUM_LEDS 12
 
-int leds[NUM_LEDS] = {4,17,10,9,11,5,6,13,26,14,15,23,24,25,8,7,12,20,21};
+//int leds[NUM_LEDS] = {4,17,10,9,11,5,6,13,26,14,15,23,24,25,8,7,12,20,21};
+int leds[NUM_LEDS] = {4,17,10,9,11,5,6,13,26,12,21,20};
 
 //LED pins are hardcoded for now. Deal with it 
 void setup_grid(){
@@ -26,12 +27,14 @@ int set_pin_val(int led_num, uint32_t led_val_raw){
 //parse 32-bit value into state of individual pins
 void generate_led_status(uint32_t led_val_raw){
   for(int i = 0; i < NUM_LEDS; i++){
-    //printf("LED %i: %i\n",i,set_pin_val(i,led_val_raw));
+    if(i == 0)
+      printf("LED %i (GPIO%i): %i\n",i,leds[i],set_pin_val(i,led_val_raw));
     digitalWrite(leds[i],set_pin_val(i,led_val_raw));
   }
 }
 
 int main(void){
+  wiringPiSetupGpio(); //ues BCM
   setup_grid();
   srand(time(NULL));
   while(1){
