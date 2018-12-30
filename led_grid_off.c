@@ -31,7 +31,7 @@ void generate_led_status(uint32_t led_val_raw){
     if(i == 0)
       printf("LED %i (GPIO%i): %i\n",i,leds[i],set_pin_val(i,led_val_raw));
     //digitalWrite(leds[i],set_pin_val(i,led_val_raw));
-    digitalWrite(leds[i],1);
+    digitalWrite(leds[i],0);
   }
 }
 
