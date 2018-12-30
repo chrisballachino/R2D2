@@ -2,8 +2,10 @@
 
 import pyaudio
 import wave
+import pygame
+import time
 
-def play_noise(filename):
+def play_noise_old(filename):
     #define stream chunk
     chunk = 1024
 
@@ -32,5 +34,12 @@ def play_noise(filename):
     #close pyaudio
     p.terminate()
 
+def play_noise(filename):
+    print('Should be playing %s'%filename)
+    pygame.mixer.init()
+    pygame.mixer.music.load(filename)
+    pygame.mixer.music.play()
+    time.sleep(2)
+
 if __name__=='__main__':
-    play_noise('./sounds/WHIST2.wav')    
+    play_noise('./sounds/CHORTLE.wav')    
