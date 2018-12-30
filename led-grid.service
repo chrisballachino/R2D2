@@ -1,0 +1,11 @@
+[Unit]
+Description=Controls the R2D2 LED grid
+After=network.target
+
+[Service]
+ExecStart=/home/pi/r2/led_grid
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

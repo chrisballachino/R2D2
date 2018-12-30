@@ -1,0 +1,11 @@
+[Unit]
+Description=Controls the left R2D2 wheel
+After=network.target
+
+[Service]
+ExecStart=/home/pi/r2/motor 19 27 7777
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

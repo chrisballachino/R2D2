@@ -1,0 +1,12 @@
+[Unit]
+Description=Controls the full R2D2 with interface
+After=network.target
+
+[Service]
+ExecStart=python /home/pi/r2/r2d2.py
+WorkingDirectory=/home/pi/r2
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
