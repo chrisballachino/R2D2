@@ -8,11 +8,10 @@
 #include <time.h>
 
 //#define NUM_LEDS 20
-//Note: one of the GPIOs in the 12 is miswired
-#define NUM_LEDS 13
+#define NUM_LEDS 12
 
 //int leds[NUM_LEDS] = {4,17,10,9,11,5,6,13,26,14,15,23,24,25,8,7,12,20,21};
-int leds[NUM_LEDS] = {3,4,17,10,9,11,5,6,13,26,12,21,20};
+int leds[NUM_LEDS] = {4,17,10,9,11,5,6,13,26,12,21,20};
 
 //LED pins are hardcoded for now. Deal with it 
 void setup_grid(){
@@ -31,8 +30,8 @@ void generate_led_status(uint32_t led_val_raw){
   for(int i = 0; i < NUM_LEDS; i++){
     if(i == 0)
       printf("LED %i (GPIO%i): %i\n",i,leds[i],set_pin_val(i,led_val_raw));
-    digitalWrite(leds[i],set_pin_val(i,led_val_raw));
-    //digitalWrite(leds[i],1);
+    //digitalWrite(leds[i],set_pin_val(i,led_val_raw));
+    digitalWrite(leds[i],1);
   }
 }
 
