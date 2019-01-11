@@ -73,6 +73,8 @@ if __name__=='__main__':
     sock.sendto(zero_data,(UDP_IP,UDP_PORT_LEFT))
     sock.sendto(zero_data,(UDP_IP,UDP_PORT_RIGHT))
     sock.sendto(zero_data,(UDP_IP,UDP_PORT_DOME))
+
+    #play_noise('/home/pi/r2/sounds/WOWIE.wav')
     
     while(True):
         logfile.flush()
@@ -93,23 +95,23 @@ if __name__=='__main__':
                     packed_data = bytes()
                     packed_data = packed_data.join((struct.pack('B',val) for val in data))
                     if(keyTypeY == 'ly'): #reverse for wiring
-                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))
-                    else:
                         sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))
+                    else:
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))
                 #we want to move
                 else:
                     #direction (negative is forward)
                     if(keyTypeY == 'ly'): #reverse for wiring
                         if(keyValY < 0.0):
-                            direction = 0
-                        else:
                             direction = 1
+                        else:
+                            direction = 0
                     #for some reason the two motors are backwards
                     else:
-                        if(keyValY < 0.0):
-                            direction = 0
-                        else:
+                        if(keyValX < 0.0):
                             direction = 1
+                        else:
+                            direction = 0
 
                     #joystick returns -1.0 to 1, so multiply to get 0 to 100
                     speed = int(abs(keyValY)*100)
@@ -121,9 +123,9 @@ if __name__=='__main__':
                     packed_data = packed_data.join((struct.pack('B',val) for val in data))
 
                     if(keyTypeY == 'ly'):
-                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))                
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))                
                     else:
-                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))
+                        sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))
             if(keyTypeX == 'lx'): #Only use one joystick to avoid sending two directions back-to-back # or keyTypeX == 'rx'):
                 #print('%s %.3f'%(keyTypeX,keyValX))
                 if(abs(keyValX) < 5.0):
@@ -162,15 +164,21 @@ if __name__=='__main__':
                 print('%s: %i'%(keyType,keyVal))
                 logfile.write('%s: %i\n'%(keyType,keyVal))
                 if(keyType == 'x' and keyVal == 1):
-                    play_noise('./sounds/RAZZ10.wav')
+                    os.system("/bin/bash -c 'sudo -u pi python /home/pi/r2/Audio.py /home/pi/r2/sounds/RAZZ10.wav'")
+                    #play_noise('/home/pi/r2/sounds/RAZZ10.wav')
                 elif(keyType == 'square' and keyVal == 1):
-                    play_noise('./sounds/CHORTLE.wav')
+                    #play_noise('/home/pi/r2/sounds/CHORTLE.wav')
+                    os.system("/bin/bash -c 'sudo -u pi python /home/pi/r2/Audio.py /home/pi/r2/sounds/CHORTLE.wav'")
                 elif(keyType == 'triangle' and keyVal == 1):
-                    play_noise('./sounds/GROAN.wav')
+                    os.system("/bin/bash -c 'sudo -u pi python /home/pi/r2/Audio.py /home/pi/r2/sounds/ random'")
+                    #play_noise('/home/pi/r2/sounds/GROAN.wav')
                 elif(keyType == 'circle' and keyVal == 1):
-                    play_noise('./sounds/WOWIE.wav')
+                    #play_noise('/home/pi/r2/sounds/WOWIE.wav')
+                    os.system("/bin/bash -c 'sudo -u pi python /home/pi/r2/Audio.py /home/pi/r2/sounds/WOWIE.wav'")
+
             except:
                 print('Key not valid:')
                 logfile.write('Key not valid:\n')
-                print(output)
-                logfile.write(output+'\n')
+                #print(output)
+                #logfile.write(output)
+                #logfile.write('\n')
