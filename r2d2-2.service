@@ -3,7 +3,7 @@ Description=Controls the full R2D2 with interface
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python /home/pi/r2/r2d2.py /dev/input/js0
+ExecStart=/usr/bin/python /home/pi/r2/r2d2.py /dev/input/js1
 WorkingDirectory=/home/pi/r2
 Restart=always
 User=root

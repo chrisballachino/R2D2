@@ -85,9 +85,9 @@ axis_map = []
 button_map = []
 
 class ps4_controller:
-    def __init__(self):
+    def __init__(self, input):
         # Open the joystick device.
-        self.fn = '/dev/input/js0'
+        self.fn = input
         self.jsdev = open(self.fn, 'rb')
 
         # Get the device name.
@@ -180,7 +180,7 @@ class ps4_controller:
                             return (('ry',self.last_rz_val),('rx',self.last_z_val))
 
 if __name__=='__main__':
-    c = ps4_controller()
+    c = ps4_controller('/dev/input/js0')
     while(True):
         (keyType,keyVal) = c.read()
         

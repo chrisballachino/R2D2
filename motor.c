@@ -89,6 +89,8 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
+    FILE* fp = fopen("motor.log","a");
+
     int pwm_pin = atoi(argv[1]);
     int direction_pin = atoi(argv[2]);
     int port = atoi(argv[3]);
@@ -110,6 +112,8 @@ int main(int argc, char* argv[]){
     wiringPiSetupGpio(); //use BCM
     setup_motor(pwm_pin,direction_pin);
 
+    pwmWrite(pwm_pin,0);
+
     //test_functionality(pwm_pin,direction_pin);
     while(1){
         socklen_t len = 0;
@@ -124,6 +128,8 @@ int main(int argc, char* argv[]){
 
         if(n != 2){
             printf("Received improper packet size %i\n",n);
+            fprintf(fp,"Received improper packet size %i\n",n);
+            fflush(fp);
         }
         else{
             int speed = (int)data[0];
@@ -140,7 +146,7 @@ int main(int argc, char* argv[]){
             }
 
             if(speed == last_speed){
-                allowChange = false;
+                //allowChange = false;
             }
             last_speed = speed;
 
@@ -150,8 +156,15 @@ int main(int argc, char* argv[]){
                     digitalWrite(direction_pin,direction);
                     pwmWrite(pwm_pin,speed);
                     printf("Recv: speed %x, direction %i\n",(int)speed,direction);
+                    fprintf(fp,"Recv: speed %x, direction %i\n",(int)speed,direction);
+                    fflush(fp);
                     startTime = currentTime;
 //                }
+            }
+            else if(allowChange == false){
+                printf("Recv: speed %x, direction %i, allowChange == false\n",(int)speed,direction);
+                fprintf(fp,"Recv: speed %x, direction %i, allowChange == false\n",(int)speed,direction);
+                fflush(fp);
             }
         }
     }

@@ -1,6 +1,6 @@
 [Unit]
 Description=Controls the right R2D2 wheel
-After=network.target
+After=r2d2.service
 
 [Service]
 ExecStart=/home/pi/r2/dome 16 22 7778

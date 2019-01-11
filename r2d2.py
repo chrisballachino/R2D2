@@ -5,6 +5,8 @@ import RPi.GPIO as GPIO
 import faulthandler
 import socket
 import struct
+import datetime
+import sys
 
 from Controller import *
 from Motor import *
@@ -24,8 +26,8 @@ def setup_motors():
     
     return (left_wheel,right_wheel,dome)
 
-def setup_controller():
-    controller = ps4_controller()
+def setup_controller(input):
+    controller = ps4_controller(input)
     return controller
 
 def setup_leds():
@@ -40,23 +42,40 @@ def setup_udp():
 ###########################################
 
 if __name__=='__main__':
+    if(len(sys.argv) != 2):
+        print('Need to enter an input device')
+        sys.exit(0)
+    controller_input = sys.argv[1]
+    print(controller_input)
+
     UDP_IP = '127.0.0.1'
     UDP_PORT_LEFT = 7777
     UDP_PORT_RIGHT = 7778
     UDP_PORT_DOME = 7779
 
+    logfile = open('r2d2_%s.log'%controller_input[-1],'a')
+    logfile.write(str(datetime.datetime.now())+'\n')
+
     faulthandler.enable()
     setup_raspberry_pi()
     #(left_wheel,right_wheel,dome) = setup_motors()
-    controller = setup_controller()
+    controller = setup_controller(controller_input)
     setup_leds()
     setup_audio()
     sock = setup_udp()
     firstTime = True
 
     counter = 0    
+
+    data = (0,0)
+    zero_data = bytes()
+    zero_data = zero_data.join((struct.pack('B',val) for val in data))
+    sock.sendto(zero_data,(UDP_IP,UDP_PORT_LEFT))
+    sock.sendto(zero_data,(UDP_IP,UDP_PORT_RIGHT))
+    sock.sendto(zero_data,(UDP_IP,UDP_PORT_DOME))
     
     while(True):
+        logfile.flush()
         output = controller.read()
 
         #TODO this could be much cleaner as a loop, clean up if there's time and will
@@ -67,24 +86,24 @@ if __name__=='__main__':
 
             #if this is a joystick, read the 'y' component
             if(keyTypeY == 'ly' or keyTypeY == 'ry'):
-                #print('%s: %.3f'%(keyTypeY,keyValY))
+                print('%s: %.3f'%(keyTypeY,keyValY))
                 #if it's 0, stop moving
                 if(keyValY == 0.0):
                     data = (0,1)
                     packed_data = bytes()
                     packed_data = packed_data.join((struct.pack('B',val) for val in data))
-                    if(keyTypeY == 'ly'):
+                    if(keyTypeY == 'ly'): #reverse for wiring
                         sock.sendto(packed_data,(UDP_IP,UDP_PORT_LEFT))
                     else:
                         sock.sendto(packed_data,(UDP_IP,UDP_PORT_RIGHT))
                 #we want to move
                 else:
                     #direction (negative is forward)
-                    if(keyTypeY == 'ly'):
+                    if(keyTypeY == 'ly'): #reverse for wiring
                         if(keyValY < 0.0):
-                            direction = 1
-                        else:
                             direction = 0
+                        else:
+                            direction = 1
                     #for some reason the two motors are backwards
                     else:
                         if(keyValY < 0.0):
@@ -95,6 +114,7 @@ if __name__=='__main__':
                     #joystick returns -1.0 to 1, so multiply to get 0 to 100
                     speed = int(abs(keyValY)*100)
                     print('Y Speed = %i, direction = %i'%(speed,direction))
+                    logfile.write('Y Speed = %i, direction = %i\n'%(speed,direction))
 
                     data = (speed,direction)                
                     packed_data = bytes()
@@ -110,7 +130,7 @@ if __name__=='__main__':
                     data = (0,1)
                     packed_data = bytes()
                     packed_data = packed_data.join((struct.pack('B',val) for val in data))
-                    sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
+                    #sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
                 else:
                     #direction (negative is left)
                     if(keyValX < 0.0):
@@ -120,16 +140,27 @@ if __name__=='__main__':
              
                     speed = int(abs(keyValX)*100)
                     print('X Speed = %i, direction = %i'%(speed,direction))
+                    logfile.write('X Speed = %i, direction = %i\n'%(speed,direction))
 
                     data = (speed,direction)
                     packed_data = bytes()
                     packed_data = packed_data.join((struct.pack('B',val) for val in data))
-                    sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
-            
+                    #sock.sendto(packed_data,(UDP_IP,UDP_PORT_DOME))
+        elif(output[0] == 'r1' or output[0] == 'l1'):
+            sock.sendto(zero_data,(UDP_IP,UDP_PORT_LEFT))
+            sock.sendto(zero_data,(UDP_IP,UDP_PORT_RIGHT))
+            sock.sendto(zero_data,(UDP_IP,UDP_PORT_DOME))
+            print('Sending stop to motors - %s'%output[0])            
+            logfile.write('Sending stop to motors - %s\n'%output[0])
+        elif(output[0] == 'r2' or output[0] == 'l2'):
+            os.system('sudo systemctl restart left-wheel')
+            print('Starting left-wheel')
+            logflie.write('Starting left-wheel\n')            
         else:
             try:
                 (keyType,keyVal) = output
                 print('%s: %i'%(keyType,keyVal))
+                logfile.write('%s: %i\n'%(keyType,keyVal))
                 if(keyType == 'x' and keyVal == 1):
                     play_noise('./sounds/RAZZ10.wav')
                 elif(keyType == 'square' and keyVal == 1):
@@ -140,4 +171,6 @@ if __name__=='__main__':
                     play_noise('./sounds/WOWIE.wav')
             except:
                 print('Key not valid:')
+                logfile.write('Key not valid:\n')
                 print(output)
+                logfile.write(output+'\n')

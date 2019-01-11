@@ -1,9 +1,10 @@
 [Unit]
 Description=Controls the left R2D2 wheel
-After=network.target
+After=r2d2.service
 
 [Service]
-ExecStart=/home/pi/r2/motor 19 27 7777
+ExecStart=/bin/bash -c '/home/pi/r2/motor 19 27 7777'
+WorkingDirectory=/home/pi/r2
 Restart=always
 User=root
 
